@@ -1,0 +1,28 @@
+<article>
+    <header>
+        <h1 class="title center">
+            <a href="$url$">$title$</a>
+        </h1>
+        $if(subtitle)$
+        <p class="subtitle center">
+            $subtitle$
+        </p>
+        $endif$
+        $if(keywords)$
+        <p class="keywords center">
+            Keywords:
+            $for(keywords)$
+            <em>$keywords$</em>$sep$,
+            $endfor$
+        </p>
+        $endif$
+        $if(last-update)$
+        <p class="last_update center">
+            Last update: <time>$last-update$</time>
+        </p>
+        $endif$
+    </header>
+$body$
+</article>
+<hr>
+<hr>
