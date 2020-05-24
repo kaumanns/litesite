@@ -36,20 +36,20 @@ Plug the external EXT4-formatted SSD into one of the USB 3.0 ports (blue).
 Retrieve the device name:
 
 ```
-lsblk
+$ lsblk
 ```
 
 Mount the device via its device name (e.g. `/dev/sda1`) as `/media/root`
 
 ```
-sudo mkdir -p /media/root
-sudo mount /dev/sda1 /media/root
+$ sudo mkdir -p /media/root
+$ sudo mount /dev/sda1 /media/root
 ```
 
 Copy your entire `/` (root) to the SSD:
 
 ```
-sudo rsync -avx / /media/root
+$ sudo rsync -avx / /media/root
 ```
 
 
@@ -59,14 +59,14 @@ Retrieve the partion ID of `/dev/sda1`.
 It looks this: `PARTUUID=<YOUR_SSD_PARTUUID>`:
 
 ```
-sudo blkid
+$ sudo blkid
 ```
 
 Create backups of these files:
 
 ```
-sudo cp /boot/cmdline.txt /boot/cmdline.txt.bak
-sudo cp /etc/fstab /etc/fstab.bak
+$ sudo cp /boot/cmdline.txt /boot/cmdline.txt.bak
+$ sudo cp /etc/fstab /etc/fstab.bak
 ```
 
 Edit the single line in `/boot/cmdline.txt` such that it contains these values for the given keys.
@@ -87,7 +87,7 @@ PARTUUID=<YOUR_SSD_PARTUUID> / ext4 defaults,noatime 0 1
 Reboot:
 
 ```
-sudo reboot
+$ sudo reboot
 ```
 
 
@@ -101,20 +101,20 @@ Verify that the correct device has been mounted as `/`.
 You should see the output `/dev/sda1` or similar, not `/dev/mmcblk0p2`:
 
 ```
-findmnt -n -o SOURCE /
+$ findmnt -n -o SOURCE /
 ```
 
 Check if `/` (root) reflects the expected size of the external SSD:
 
 ```
-df -h
+$ df -h
 ```
 
 Verify the expected SSD performance.
 This tool installs missing dependencies, runs a benchmark test, and then allows uploading anonymous results for comparison to <https://storage.jamesachambers.com/>:
 
 ```
-sudo curl https://raw.githubusercontent.com/TheRemote/PiBenchmarks/master/Storage.sh | sudo bash
+$ sudo curl https://raw.githubusercontent.com/TheRemote/PiBenchmarks/master/Storage.sh | sudo bash
 ```
 
 These were my results: <https://storage.jamesachambers.com/benchmark/12150>
