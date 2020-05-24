@@ -33,40 +33,49 @@ Requirements:
 
 Plug the external EXT4-formatted SSD into one of the USB 3.0 ports (blue).
 
-Retrieve the device name:
+Retrieve the SSD device name:
 
 ```
 $ lsblk
 ```
 
-Mount the device via its device name (e.g. `/dev/sda1`) as `/media/root`
+Mount the device via its device name (e.g. `/dev/sda1`) as `/media/root`:
 
 ```
 $ sudo mkdir -p /media/root
 $ sudo mount /dev/sda1 /media/root
 ```
 
-Copy your entire `/` (root) to the SSD:
+Rsync your entire root (`/`) to the SSD (`/media/root`), ignoring mount points (`--one-file-system`):
 
 ```
-$ sudo rsync -avx / /media/root
+$ sudo rsync --archive --verbose --one-file-system / /media/root
 ```
 
 
 ## Configure the external SSD as root partition
 
-Retrieve the partion ID of `/dev/sda1`.
-It looks this: `PARTUUID=<YOUR_SSD_PARTUUID>`:
+Retrieve the partion ID of `/dev/sda1` via this command:
 
 ```
 $ sudo blkid
 ```
 
-Create backups of these files:
+Look for this key-value pattern: `PARTUUID=<YOUR_SSD_PARTUUID>`:
+The partion ID consists of alphanumerics, possibly in blocks divided by dashes.
+
+Example:
+
+```
+PARTUUID="67b63a02-1bbe-3141-b2f5-80edd5a73acc"
+```
+
+### Edit `cmdline.txt`
+
+Create a backup:
 
 ```
 $ sudo cp /boot/cmdline.txt /boot/cmdline.txt.bak
-$ sudo cp /etc/fstab /etc/fstab.bak
 ```
 
 Edit the single line in `/boot/cmdline.txt` such that it contains these values for the given keys.
@@ -76,6 +85,15 @@ Make sure not to insert duplicate keys and not to add a second line:
 <...> root=PARTUUID=<YOUR_SSD_PARTUUID> <...> rootfstype=ext4 <...> rootwait <...>
 ```
 
+### Edit `fstab`
+
+**EDIT**: Weirdly, this doesn't seem to be necessary. My root boots just fine without modifying `fstab`.
+
+Create a backup:
+
+```
+$ sudo cp /etc/fstab /etc/fstab.bak
+```
 
 Edit `/etc/fstab` such that it reflects the correct `PARTUUID` in the line with the `/` (root) in the second column.
 It looks like this:
@@ -84,14 +102,14 @@ It looks like this:
 PARTUUID=<YOUR_SSD_PARTUUID> / ext4 defaults,noatime 0 1
 ```
 
+
+## Verify the setup
+
 Reboot:
 
 ```
 $ sudo reboot
 ```
-
-
-## Verify the setup
 
 The Raspberry should behave as normal.
 Note that if you do not plug in the external SSD, the Raspberry will not boot while these changes are in place.
@@ -118,3 +136,36 @@ $ sudo curl https://raw.githubusercontent.com/TheRemote/PiBenchmarks/master/Stor
 ```
 
 These were my results: <https://storage.jamesachambers.com/benchmark/12150>
+
+
+## Move root back to internal storage
+
+Mount the internal storage. It might look like this:
+
+```
+$ sudo mount -o rw /dev/mmcblk0p2 /media/internal
+```
+
+You might notice that the internal root is out-of-date since you kept the system updated with root on the external SSD.
+Rsync root back to the internal storage, deleting non-existing files at the target with `--delete`:
+
+```
+$ sudo rsync --archive --verbose --one-file-system --delete / /media/internal
+```
+
+You might want to use e.g. `--exclude=/home` to exclude your home directory.
+If you do so, do not forget to recreate your user's home directory as a stub, e.g. `mkdir -p /media/internal/home/pi`.
+
+Re-install your backup of `cmdline.txt` in the boot partition to update the `root=PARTUUID` entry:
+
+```
+$ sudo cp /boot/cmdline.txt.bak /boot/cmdline.txt
+```
+
+If you don't have the backup anymore, use `blkid` to retrieve the `PARTUUID` for the internal storage partition and update the entry manually.
+
+Reboot:
+
+```
+$ sudo reboot
+```
