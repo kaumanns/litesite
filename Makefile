@@ -7,11 +7,13 @@
 ################################################################################
 # Configuration
 
+SHELL = bash
+
 # Binaries
 PERL ?= /usr/bin/perl
 SHELL ?= /bin/bash
 RSYNC ?= /usr/bin/rsync
-PANDOC ?= /usr/local/bin/pandoc
+PANDOC ?= pandoc
 
 # Extension for source files
 PANDOC_EXTENSION = md
@@ -43,7 +45,7 @@ reverse = $(if $(1),$(call reverse,$(wordlist 2,$(words $(1)),$(1)))) $(firstwor
 
 define apply_prerequisites_to_template
 cat $(wordlist 2,$(words $^),$^) \
-	| $(PERL) -MFile::Slurp -e 'binmode STDIN, ":encoding(UTF-8)"; binmode STDOUT, ":encoding(UTF-8)"; my $$body = do { local $$/; <STDIN> }; my $$template = read_file("$(firstword $^)", { binmode => ":encoding(UTF-8)" }); $$template =~ s/\$$body\$$/$$body/; print($$template)' \
+	| $(PERL) -e 'binmode STDIN, ":encoding(UTF-8)"; binmode STDOUT, ":encoding(UTF-8)"; my $$body = do { local $$/; <STDIN> }; open my $$fh, "<:encoding(UTF-8)", "$(firstword $^)"; my $$template = do { local $$/; <$$fh> }; $$template =~ s/\$$body\$$/$$body/; print($$template)' \
 	> $@
 endef
 
